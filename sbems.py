@@ -58,7 +58,7 @@ def update_power_source():
         # Handle cyclic mode
         if state['mode'] == 'cyclic':
             # Change source every 90 seconds
-            if current_time - state['last_source_change'] >= 90:
+            if current_time - state['last_source_change'] >= 30:
                 next_source = state['source_priority'][state['cyclic_index']]
                 activate_source(next_source)
                 state['cyclic_index'] = (state['cyclic_index'] + 1) % len(state['source_priority'])
@@ -71,7 +71,7 @@ def update_power_source():
                 if source == 'solar' and state['solar_available']:
                     activate_source('solar')
                     break
-                elif source == 'battery' and state['battery_available'] and state['battery_level'] > 5:
+                elif source == 'battery' and state['battery_available'] and state['battery_level'] > 45:
                     activate_source('battery')
                     break
                 elif source == 'grid' and state['grid_available']:
@@ -101,7 +101,7 @@ def update_output():
     # Enable/disable output relay
     if state['output_enabled'] and state['active_source']:
         # Prevent using battery if too low
-        if state['active_source'] == 'battery' and state['battery_level'] <= 5:
+        if state['active_source'] == 'battery' and state['battery_level'] <= 45:
             GPIO.output(RELAY_OUTPUT, GPIO.HIGH)
         else:
             GPIO.output(RELAY_OUTPUT, GPIO.LOW)
@@ -121,7 +121,7 @@ def index():
     next_change = 0
     if state['mode'] == 'cyclic':
         elapsed = time.time() - state['last_source_change']
-        next_change = max(0, 90 - elapsed)
+        next_change = max(0, 30 - elapsed)
     
     return render_template('index.html', state=state, next_change=next_change)
 
