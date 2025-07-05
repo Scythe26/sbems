@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Building Energy System</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Smart Building Energy System</h1>
+        </header>
+
+        <!-- Mode Selector -->
+        <section class="card">
+            <h2>Operation Mode</h2>
+            <form method="post" action="/set_mode">
+                <div class="btn-group">
+                    <button class="btn auto-btn {% if state.mode == 'auto' %}active{% endif %}" 
+                            type="submit" name="mode" value="auto">AUTO MODE</button>
+                    <button class="btn manual-btn {% if state.mode == 'manual' %}active{% endif %}" 
+                            type="submit" name="mode" value="manual">MANUAL MODE</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Power Sources -->
+        <section class="card">
+            <h2>Power Sources</h2>
+            <div class="status-box {% if state.active_source %}on{% else %}off{% endif %}">
+                <span class="status-label">Active Source:</span>
+                <span class="status-value">{% if state.active_source %}{{ state.active_source|upper }}{% else %}NONE{% endif %}</span>
+            </div>
+            
+            {% if state.mode == 'auto' %}
+                <div class="priority-info">
+                    <h3>Auto Selection Priority: Solar > Battery > Grid</h3>
+                    <p>Toggle source availability:</p>
+                </div>
+                <form method="post" action="/toggle_availability">
+                    <div class="btn-group">
+                        <button class="btn source-btn" type="submit" name="source" value="solar">
+                            Solar: {{ 'AVAILABLE' if state.solar_available else 'UNAVAILABLE' }}
+                        </button>
+                        <button class="btn source-btn" type="submit" name="source" value="battery">
+                            Battery: {{ 'AVAILABLE' if state.battery_available else 'UNAVAILABLE' }}
+                        </button>
+                        <button class="btn source-btn" type="submit" name="source" value="grid">
+                            Grid: {{ 'AVAILABLE' if state.grid_available else 'UNAVAILABLE' }}
+                        </button>
+                    </div>
+                </form>
+            {% else %}
+                <form method="post" action="/set_source">
+                    <div class="btn-group">
+                        <button class="btn source-btn {% if state.active_source == 'solar' %}active{% endif %}" 
+                                type="submit" name="source" value="solar">USE SOLAR</button>
+                        <button class="btn source-btn {% if state.active_source == 'battery' %}active{% endif %}" 
+                                type="submit" name="source" value="battery">USE BATTERY</button>
+                        <button class="btn source-btn {% if state.active_source == 'grid' %}active{% endif %}" 
+                                type="submit" name="source" value="grid">USE GRID</button>
+                    </div>
+                </form>
+            {% endif %}
+        </section>
+
+        <!-- Building Output -->
+        <section class="card">
+            <h2>Building Load</h2>
+            <div class="status-box {% if state.output_enabled %}on{% else %}off{% endif %}">
+                <span class="status-label">Status:</span>
+                <span class="status-value">{{ 'POWERED' if state.output_enabled else 'OFF' }}</span>
+            </div>
+            <form method="post" action="/toggle_output">
+                <button class="btn output-btn" type="submit">
+                    {{ 'TURN OFF' if state.output_enabled else 'TURN ON' }}
+                </button>
+            </form>
+        </section>
+
+        <!-- System Status -->
+        <section class="card">
+            <h2>System Status</h2>
+            <div class="status-info">
+                <p>Output LED: 
+                    <span class="led-indicator {% if state.output_enabled %}on{% else %}off{% endif %}"></span>
+                    {{ 'ON (Building Powered)' if state.output_enabled else 'OFF (No Power)' }}
+                </p>
+                <p>Operation Mode: <strong>{{ 'AUTO' if state.mode == 'auto' else 'MANUAL' }}</strong></p>
+                <p>Current Source: <strong>{{ state.active_source|upper if state.active_source else 'NONE' }}</strong></p>
+            </div>
+        </section>
+
+        <footer>
+            <p>Smart Building Prototype | Raspberry Pi Energy Management</p>
+        </footer>
+    </div>
+</body>
+</html>
