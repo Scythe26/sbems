@@ -207,7 +207,7 @@ h2 {
 .battery-level {
     height: 100%;
     border-radius: 15px;
-    transition: width 1s ease;
+    transition: width 0.5s ease;
     background: linear-gradient(to right, var(--battery-low), var(--battery-medium), var(--battery-full));
 }
 

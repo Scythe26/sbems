@@ -1,8 +1,7 @@
-from flask import Flask, render_template, request, send_from_directory
+from flask import Flask, render_template, request, send_from_directory, jsonify
 import RPi.GPIO as GPIO
 import threading
 import time
-from datetime import datetime
 
 app = Flask(__name__)
 
@@ -47,7 +46,7 @@ def battery_simulator():
             # Reset battery if depleted
             if state['battery_level'] <= 0:
                 state['battery_level'] = 100
-            
+                
         state['last_battery_update'] = time.time()
         time.sleep(1)
 
@@ -71,7 +70,7 @@ def update_power_source():
                 if source == 'solar' and state['solar_available']:
                     activate_source('solar')
                     break
-                elif source == 'battery' and state['battery_available'] and state['battery_level'] > 45:
+                elif source == 'battery' and state['battery_available'] and state['battery_level'] > 5:
                     activate_source('battery')
                     break
                 elif source == 'grid' and state['grid_available']:
@@ -101,7 +100,7 @@ def update_output():
     # Enable/disable output relay
     if state['output_enabled'] and state['active_source']:
         # Prevent using battery if too low
-        if state['active_source'] == 'battery' and state['battery_level'] <= 45:
+        if state['active_source'] == 'battery' and state['battery_level'] <= 5:
             GPIO.output(RELAY_OUTPUT, GPIO.HIGH)
         else:
             GPIO.output(RELAY_OUTPUT, GPIO.LOW)
@@ -117,13 +116,25 @@ power_thread.start()
 
 @app.route('/')
 def index():
-    # Calculate time to next source change in cyclic mode
+    return render_template('index.html')
+
+@app.route('/get_status')
+def get_status():
     next_change = 0
     if state['mode'] == 'cyclic':
         elapsed = time.time() - state['last_source_change']
         next_change = max(0, 30 - elapsed)
     
-    return render_template('index.html', state=state, next_change=next_change)
+    return jsonify({
+        'mode': state['mode'],
+        'active_source': state['active_source'],
+        'output_enabled': state['output_enabled'],
+        'battery_level': round(state['battery_level'], 1),
+        'next_change': round(next_change, 1),
+        'solar_available': state['solar_available'],
+        'battery_available': state['battery_available'],
+        'grid_available': state['grid_available']
+    })
 
 @app.route('/static/<path:filename>')
 def static_files(filename):
@@ -138,7 +149,7 @@ def set_mode():
         state['cyclic_index'] = 0
         state['last_source_change'] = time.time()
     
-    return index()
+    return jsonify(success=True)
 
 @app.route('/set_source', methods=['POST'])
 def set_source():
@@ -148,13 +159,13 @@ def set_source():
         state['solar_available'] = (source == 'solar')
         state['battery_available'] = (source == 'battery')
         state['grid_available'] = (source == 'grid')
-    return index()
+    return jsonify(success=True)
 
 @app.route('/toggle_output', methods=['POST'])
 def toggle_output():
     state['output_enabled'] = not state['output_enabled']
     update_output()
-    return index()
+    return jsonify(success=True)
 
 @app.route('/toggle_availability', methods=['POST'])
 def toggle_availability():
@@ -165,7 +176,7 @@ def toggle_availability():
         state['battery_available'] = not state['battery_available']
     elif source == 'grid':
         state['grid_available'] = not state['grid_available']
-    return index()
+    return jsonify(success=True)
 
 if __name__ == '__main__':
     try:

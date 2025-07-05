@@ -15,14 +15,11 @@
         <!-- Mode Selector -->
         <section class="card">
             <h2>Operation Mode</h2>
-            <form method="post" action="/set_mode">
+            <form id="mode-form">
                 <div class="btn-group">
-                    <button class="btn auto-btn {% if state.mode == 'auto' %}active{% endif %}" 
-                            type="submit" name="mode" value="auto">AUTO MODE</button>
-                    <button class="btn manual-btn {% if state.mode == 'manual' %}active{% endif %}" 
-                            type="submit" name="mode" value="manual">MANUAL MODE</button>
-                    <button class="btn cyclic-btn {% if state.mode == 'cyclic' %}active{% endif %}" 
-                            type="submit" name="mode" value="cyclic">CYCLIC MODE</button>
+                    <button class="btn auto-btn" type="button" data-mode="auto">AUTO MODE</button>
+                    <button class="btn manual-btn" type="button" data-mode="manual">MANUAL MODE</button>
+                    <button class="btn cyclic-btn" type="button" data-mode="cyclic">CYCLIC MODE</button>
                 </div>
             </form>
         </section>
@@ -30,67 +27,54 @@
         <!-- Power Sources -->
         <section class="card">
             <h2>Power Sources</h2>
-            <div class="status-box {% if state.active_source %}on{% else %}off{% endif %}">
+            <div class="status-box" id="source-status">
                 <span class="status-label">Active Source:</span>
-                <span class="status-value">{% if state.active_source %}{{ state.active_source|upper }}{% else %}NONE{% endif %}</span>
+                <span class="status-value" id="active-source">NONE</span>
             </div>
             
             <!-- Cyclic mode info -->
-            {% if state.mode == 'cyclic' %}
-                <div class="cyclic-info">
-                    <p>Cycling every 30 seconds: Solar → Battery → Grid</p>
-                    <p>Next change in: <strong>{{ next_change|round(1) }} seconds</strong></p>
-                </div>
-            {% endif %}
+            <div class="cyclic-info" id="cyclic-info" style="display: none;">
+                <p>Cycling every 30 seconds: Solar → Battery → Grid</p>
+                <p>Next change in: <strong id="next-change">0</strong> seconds</p>
+            </div>
             
             <!-- Auto mode controls -->
-            {% if state.mode == 'auto' %}
+            <div class="auto-controls" id="auto-controls" style="display: none;">
                 <div class="priority-info">
                     <h3>Auto Selection Priority: Solar > Battery > Grid</h3>
                     <p>Toggle source availability:</p>
                 </div>
-                <form method="post" action="/toggle_availability">
-                    <div class="btn-group">
-                        <button class="btn source-btn" type="submit" name="source" value="solar">
-                            Solar: {{ 'AVAILABLE' if state.solar_available else 'UNAVAILABLE' }}
-                        </button>
-                        <button class="btn source-btn" type="submit" name="source" value="battery">
-                            Battery: {{ 'AVAILABLE' if state.battery_available else 'UNAVAILABLE' }}
-                        </button>
-                        <button class="btn source-btn" type="submit" name="source" value="grid">
-                            Grid: {{ 'AVAILABLE' if state.grid_available else 'UNAVAILABLE' }}
-                        </button>
-                    </div>
-                </form>
-            {% endif %}
+                <div class="btn-group">
+                    <button class="btn source-btn" type="button" data-source="solar" id="solar-btn">
+                        Solar: <span id="solar-status">AVAILABLE</span>
+                    </button>
+                    <button class="btn source-btn" type="button" data-source="battery" id="battery-btn">
+                        Battery: <span id="battery-status">AVAILABLE</span>
+                    </button>
+                    <button class="btn source-btn" type="button" data-source="grid" id="grid-btn">
+                        Grid: <span id="grid-status">AVAILABLE</span>
+                    </button>
+                </div>
+            </div>
             
             <!-- Manual mode controls -->
-            {% if state.mode == 'manual' %}
-                <form method="post" action="/set_source">
-                    <div class="btn-group">
-                        <button class="btn source-btn {% if state.active_source == 'solar' %}active{% endif %}" 
-                                type="submit" name="source" value="solar">USE SOLAR</button>
-                        <button class="btn source-btn {% if state.active_source == 'battery' %}active{% endif %}" 
-                                type="submit" name="source" value="battery">USE BATTERY</button>
-                        <button class="btn source-btn {% if state.active_source == 'grid' %}active{% endif %}" 
-                                type="submit" name="source" value="grid">USE GRID</button>
-                    </div>
-                </form>
-            {% endif %}
+            <div class="manual-controls" id="manual-controls" style="display: none;">
+                <div class="btn-group">
+                    <button class="btn source-btn" data-source="solar" id="use-solar">USE SOLAR</button>
+                    <button class="btn source-btn" data-source="battery" id="use-battery">USE BATTERY</button>
+                    <button class="btn source-btn" data-source="grid" id="use-grid">USE GRID</button>
+                </div>
+            </div>
         </section>
 
         <!-- Building Output -->
         <section class="card">
             <h2>Building Load</h2>
-            <div class="status-box {% if state.output_enabled %}on{% else %}off{% endif %}">
+            <div class="status-box" id="output-status">
                 <span class="status-label">Status:</span>
-                <span class="status-value">{{ 'POWERED' if state.output_enabled else 'OFF' }}</span>
+                <span class="status-value" id="output-state">OFF</span>
             </div>
-            <form method="post" action="/toggle_output">
-                <button class="btn output-btn" type="submit">
-                    {{ 'TURN OFF' if state.output_enabled else 'TURN ON' }}
-                </button>
-            </form>
+            <button class="btn output-btn" id="toggle-output">TURN ON</button>
         </section>
 
         <!-- System Status -->
@@ -101,34 +85,200 @@
             <div class="battery-container">
                 <div class="battery-header">
                     <span>Battery Level:</span>
-                    <span class="battery-value">{{ state.battery_level|round(1) }}%</span>
+                    <span class="battery-value" id="battery-level">100%</span>
                 </div>
                 <div class="battery-bar">
-                    <div class="battery-level" style="width: {{ state.battery_level }}%;"></div>
+                    <div class="battery-level" id="battery-bar" style="width: 100%;"></div>
                 </div>
             </div>
             
             <!-- Output Status -->
             <div class="status-info">
                 <p>Output LED: 
-                    <span class="led-indicator {% if state.output_enabled %}on{% else %}off{% endif %}"></span>
-                    {{ 'ON (Building Powered)' if state.output_enabled else 'OFF (No Power)' }}
+                    <span class="led-indicator" id="led-indicator"></span>
+                    <span id="led-status">OFF (No Power)</span>
                 </p>
-                <p>Operation Mode: <strong>{{ state.mode|upper }}</strong></p>
-                <p>Current Source: <strong>{{ state.active_source|upper if state.active_source else 'NONE' }}</strong></p>
+                <p>Operation Mode: <strong id="current-mode">AUTO</strong></p>
+                <p>Current Source: <strong id="current-source">NONE</strong></p>
             </div>
         </section>
 
         <footer>
-            <p>Smart Building Prototype | Raspberry Pi Energy Management</p>
+            <p>SBEMS Prototype | Energy Management</p>
         </footer>
     </div>
     
     <script>
-        // Auto-refresh page every 5 seconds to update battery and cyclic timer
-        setInterval(() => {
-            window.location.reload();
-        }, 5000);
+        // DOM Elements
+        const activeSourceEl = document.getElementById('active-source');
+        const outputStateEl = document.getElementById('output-state');
+        const batteryLevelEl = document.getElementById('battery-level');
+        const batteryBarEl = document.getElementById('battery-bar');
+        const nextChangeEl = document.getElementById('next-change');
+        const ledIndicatorEl = document.getElementById('led-indicator');
+        const ledStatusEl = document.getElementById('led-status');
+        const currentModeEl = document.getElementById('current-mode');
+        const currentSourceEl = document.getElementById('current-source');
+        const toggleOutputBtn = document.getElementById('toggle-output');
+        
+        // Mode Sections
+        const cyclicInfo = document.getElementById('cyclic-info');
+        const autoControls = document.getElementById('auto-controls');
+        const manualControls = document.getElementById('manual-controls');
+        
+        // Availability Buttons
+        const solarBtn = document.getElementById('solar-btn');
+        const batteryBtn = document.getElementById('battery-btn');
+        const gridBtn = document.getElementById('grid-btn');
+        const solarStatus = document.getElementById('solar-status');
+        const batteryStatus = document.getElementById('battery-status');
+        const gridStatus = document.getElementById('grid-status');
+        
+        // Manual Source Buttons
+        const useSolarBtn = document.getElementById('use-solar');
+        const useBatteryBtn = document.getElementById('use-battery');
+        const useGridBtn = document.getElementById('use-grid');
+        
+        // Mode Buttons
+        const modeButtons = document.querySelectorAll('[data-mode]');
+        
+        // Fetch current system status
+        async function fetchStatus() {
+            try {
+                const response = await fetch('/get_status');
+                return await response.json();
+            } catch (error) {
+                console.error('Error fetching status:', error);
+            }
+        }
+        
+        // Update UI with current state
+        function updateUI(data) {
+            // Update source status
+            activeSourceEl.textContent = data.active_source ? data.active_source.toUpperCase() : 'NONE';
+            currentSourceEl.textContent = data.active_source ? data.active_source.toUpperCase() : 'NONE';
+            
+            // Update output status
+            const outputEnabled = data.output_enabled;
+            outputStateEl.textContent = outputEnabled ? 'POWERED' : 'OFF';
+            toggleOutputBtn.textContent = outputEnabled ? 'TURN OFF' : 'TURN ON';
+            
+            // Update battery
+            const batteryLevel = data.battery_level;
+            batteryLevelEl.textContent = `${batteryLevel}%`;
+            batteryBarEl.style.width = `${batteryLevel}%`;
+            
+            // Update LED status
+            ledIndicatorEl.className = `led-indicator ${outputEnabled ? 'on' : 'off'}`;
+            ledStatusEl.textContent = outputEnabled ? 'ON (Building Powered)' : 'OFF (No Power)';
+            
+            // Update mode
+            currentModeEl.textContent = data.mode.toUpperCase();
+            
+            // Update mode-specific UI
+            updateModeUI(data.mode, data);
+        }
+        
+        // Update mode-specific UI elements
+        function updateModeUI(mode, data) {
+            // Hide all mode sections first
+            cyclicInfo.style.display = 'none';
+            autoControls.style.display = 'none';
+            manualControls.style.display = 'none';
+            
+            // Show relevant section
+            if (mode === 'cyclic') {
+                cyclicInfo.style.display = 'block';
+                nextChangeEl.textContent = data.next_change.toFixed(1);
+            } else if (mode === 'auto') {
+                autoControls.style.display = 'block';
+                solarStatus.textContent = data.solar_available ? 'AVAILABLE' : 'UNAVAILABLE';
+                batteryStatus.textContent = data.battery_available ? 'AVAILABLE' : 'UNAVAILABLE';
+                gridStatus.textContent = data.grid_available ? 'AVAILABLE' : 'UNAVAILABLE';
+            } else if (mode === 'manual') {
+                manualControls.style.display = 'block';
+            }
+            
+            // Update active button state
+            modeButtons.forEach(btn => {
+                if (btn.dataset.mode === mode) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+        
+        // Event listeners
+        modeButtons.forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const mode = btn.dataset.mode;
+                const formData = new FormData();
+                formData.append('mode', mode);
+                
+                await fetch('/set_mode', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                // Refresh UI
+                const status = await fetchStatus();
+                updateUI(status);
+            });
+        });
+        
+        // Availability toggle
+        [solarBtn, batteryBtn, gridBtn].forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const source = btn.dataset.source;
+                const formData = new FormData();
+                formData.append('source', source);
+                
+                await fetch('/toggle_availability', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const status = await fetchStatus();
+                updateUI(status);
+            });
+        });
+        
+        // Manual source selection
+        [useSolarBtn, useBatteryBtn, useGridBtn].forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const source = btn.dataset.source;
+                const formData = new FormData();
+                formData.append('source', source);
+                
+                await fetch('/set_source', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const status = await fetchStatus();
+                updateUI(status);
+            });
+        });
+        
+        // Output toggle
+        toggleOutputBtn.addEventListener('click', async () => {
+            await fetch('/toggle_output', {
+                method: 'POST'
+            });
+            
+            const status = await fetchStatus();
+            updateUI(status);
+        });
+        
+        // Initialize and update every 2 seconds
+        async function init() {
+            const status = await fetchStatus();
+            updateUI(status);
+        }
+        
+        init();
+        setInterval(init, 2000);
     </script>
 </body>
 </html>
