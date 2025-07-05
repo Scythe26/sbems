@@ -21,6 +21,8 @@
                             type="submit" name="mode" value="auto">AUTO MODE</button>
                     <button class="btn manual-btn {% if state.mode == 'manual' %}active{% endif %}" 
                             type="submit" name="mode" value="manual">MANUAL MODE</button>
+                    <button class="btn cyclic-btn {% if state.mode == 'cyclic' %}active{% endif %}" 
+                            type="submit" name="mode" value="cyclic">CYCLIC MODE</button>
                 </div>
             </form>
         </section>
@@ -33,6 +35,15 @@
                 <span class="status-value">{% if state.active_source %}{{ state.active_source|upper }}{% else %}NONE{% endif %}</span>
             </div>
             
+            <!-- Cyclic mode info -->
+            {% if state.mode == 'cyclic' %}
+                <div class="cyclic-info">
+                    <p>Cycling every 90 seconds: Solar → Battery → Grid</p>
+                    <p>Next change in: <strong>{{ next_change|round(1) }} seconds</strong></p>
+                </div>
+            {% endif %}
+            
+            <!-- Auto mode controls -->
             {% if state.mode == 'auto' %}
                 <div class="priority-info">
                     <h3>Auto Selection Priority: Solar > Battery > Grid</h3>
@@ -51,7 +62,10 @@
                         </button>
                     </div>
                 </form>
-            {% else %}
+            {% endif %}
+            
+            <!-- Manual mode controls -->
+            {% if state.mode == 'manual' %}
                 <form method="post" action="/set_source">
                     <div class="btn-group">
                         <button class="btn source-btn {% if state.active_source == 'solar' %}active{% endif %}" 
@@ -82,12 +96,25 @@
         <!-- System Status -->
         <section class="card">
             <h2>System Status</h2>
+            
+            <!-- Battery Status -->
+            <div class="battery-container">
+                <div class="battery-header">
+                    <span>Battery Level:</span>
+                    <span class="battery-value">{{ state.battery_level|round(1) }}%</span>
+                </div>
+                <div class="battery-bar">
+                    <div class="battery-level" style="width: {{ state.battery_level }}%;"></div>
+                </div>
+            </div>
+            
+            <!-- Output Status -->
             <div class="status-info">
                 <p>Output LED: 
                     <span class="led-indicator {% if state.output_enabled %}on{% else %}off{% endif %}"></span>
                     {{ 'ON (Building Powered)' if state.output_enabled else 'OFF (No Power)' }}
                 </p>
-                <p>Operation Mode: <strong>{{ 'AUTO' if state.mode == 'auto' else 'MANUAL' }}</strong></p>
+                <p>Operation Mode: <strong>{{ state.mode|upper }}</strong></p>
                 <p>Current Source: <strong>{{ state.active_source|upper if state.active_source else 'NONE' }}</strong></p>
             </div>
         </section>
@@ -96,5 +123,12 @@
             <p>Smart Building Prototype | Raspberry Pi Energy Management</p>
         </footer>
     </div>
+    
+    <script>
+        // Auto-refresh page every 5 seconds to update battery and cyclic timer
+        setInterval(() => {
+            window.location.reload();
+        }, 5000);
+    </script>
 </body>
 </html>

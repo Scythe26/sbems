@@ -12,10 +12,14 @@
     --warning: #f39c12;
     --danger: #e74c3c;
     --info: #9b59b6;
+    --cyclic: #8e44ad;
     --light: #ecf0f1;
     --dark: #34495e;
     --white: #ffffff;
     --gray: #95a5a6;
+    --battery-full: #2ecc71;
+    --battery-medium: #f1c40f;
+    --battery-low: #e74c3c;
 }
 
 body {
@@ -114,6 +118,11 @@ h2 {
     color: var(--white);
 }
 
+.cyclic-btn {
+    background-color: var(--cyclic);
+    color: var(--white);
+}
+
 .source-btn {
     background-color: var(--success);
     color: var(--white);
@@ -166,6 +175,55 @@ h2 {
     font-weight: 700;
 }
 
+/* ===== BATTERY STATUS BAR ===== */
+.battery-container {
+    margin: 20px 0;
+    padding: 15px;
+    background-color: rgba(236, 240, 241, 0.6);
+    border-radius: 8px;
+}
+
+.battery-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.battery-value {
+    font-weight: 700;
+    color: var(--dark);
+}
+
+.battery-bar {
+    height: 30px;
+    background-color: #e0e0e0;
+    border-radius: 15px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.battery-level {
+    height: 100%;
+    border-radius: 15px;
+    transition: width 1s ease;
+    background: linear-gradient(to right, var(--battery-low), var(--battery-medium), var(--battery-full));
+}
+
+/* Dynamic color based on level */
+.battery-level[style*="100"] { background: var(--battery-full); }
+.battery-level[style*="9"] { background: var(--battery-full); }
+.battery-level[style*="8"] { background: var(--battery-full); }
+.battery-level[style*="7"] { background: var(--battery-full); }
+.battery-level[style*="6"] { background: var(--battery-medium); }
+.battery-level[style*="5"] { background: var(--battery-medium); }
+.battery-level[style*="4"] { background: var(--battery-medium); }
+.battery-level[style*="3"] { background: var(--battery-low); }
+.battery-level[style*="2"] { background: var(--battery-low); }
+.battery-level[style*="1"] { background: var(--battery-low); }
+.battery-level[style*="0"] { background: var(--battery-low); }
+
 /* ===== LED INDICATOR ===== */
 .led-indicator {
     display: inline-block;
@@ -213,6 +271,14 @@ h2 {
     background-color: rgba(52, 152, 219, 0.1);
     border-radius: 8px;
     border-left: 4px solid var(--secondary);
+}
+
+.cyclic-info {
+    margin: 15px 0;
+    padding: 12px;
+    background-color: rgba(142, 68, 173, 0.1);
+    border-radius: 8px;
+    border-left: 4px solid var(--cyclic);
 }
 
 /* ===== FOOTER ===== */
