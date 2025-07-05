@@ -1,0 +1,137 @@
+/* Global Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f5f5;
+    color: #333;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    line-height: 1.6;
+}
+
+h1 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 30px;
+}
+
+h2 {
+    color: #34495e;
+    border-bottom: 2px solid #ecf0f1;
+    padding-bottom: 10px;
+    margin-top: 0;
+}
+
+.card {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-bottom: 25px;
+    transition: transform 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+/* Button Styles */
+.btn {
+    padding: 12px 20px;
+    margin: 8px 5px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    font-size: 16px;
+}
+
+.btn:hover {
+    opacity: 0.9;
+    transform: scale(1.05);
+}
+
+.auto-btn {
+    background-color: #3498db;
+    color: white;
+}
+
+.manual-btn {
+    background-color: #e67e22;
+    color: white;
+}
+
+.source-btn {
+    background-color: #2ecc71;
+    color: white;
+}
+
+.output-btn {
+    background-color: #9b59b6;
+    color: white;
+}
+
+/* Active State */
+.active {
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.5);
+    border: 2px solid #2980b9;
+}
+
+/* Status Indicators */
+.status {
+    padding: 15px;
+    margin: 15px 0;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.on {
+    background-color: #2ecc71;
+    color: white;
+}
+
+.off {
+    background-color: #e74c3c;
+    color: white;
+}
+
+/* LED Indicator */
+.led-indicator {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    margin-right: 10px;
+    vertical-align: middle;
+    box-shadow: 0 0 5px rgba(0,0,0,0.3);
+}
+
+.led-indicator.on {
+    background-color: #2ecc71;
+    box-shadow: 0 0 10px #2ecc71;
+}
+
+.led-indicator.off {
+    background-color: #e74c3c;
+}
+
+/* Form Elements */
+form {
+    margin: 15px 0;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    .btn {
+        display: block;
+        width: 100%;
+        margin: 10px 0;
+    }
+    
+    .card {
+        padding: 15px;
+    }
+}

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart Energy System</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <h1>Smart Building Energy System</h1>
+    
+    <!-- Mode Selector -->
+    <div class="card">
+        <h2>Operation Mode</h2>
+        <form method="post" action="/set_mode">
+            <button class="btn auto-btn {% if state.mode == 'auto' %}active{% endif %}" 
+                    type="submit" name="mode" value="auto">AUTO MODE</button>
+            <button class="btn manual-btn {% if state.mode == 'manual' %}active{% endif %}" 
+                    type="submit" name="mode" value="manual">MANUAL MODE</button>
+        </form>
+    </div>
+
+    <!-- Power Sources -->
+    <div class="card">
+        <h2>Power Sources</h2>
+        <div class="status {% if state.active_source %}on{% else %}off{% endif %}">
+            Active Source: {% if state.active_source %}{{ state.active_source|upper }}{% else %}NONE{% endif %}
+        </div>
+        
+        {% if state.mode == 'auto' %}
+            <h3>Auto Selection Priority: Solar > Battery > Grid</h3>
+            <p>Toggle source availability:</p>
+            <form method="post" action="/toggle_availability">
+                <button class="btn source-btn" type="submit" name="source" value="solar">
+                    Solar: {{ 'AVAILABLE' if state.solar_available else 'UNAVAILABLE' }}
+                </button>
+                <button class="btn source-btn" type="submit" name="source" value="battery">
+                    Battery: {{ 'AVAILABLE' if state.battery_available else 'UNAVAILABLE' }}
+                </button>
+                <button class="btn source-btn" type="submit" name="source" value="grid">
+                    Grid: {{ 'AVAILABLE' if state.grid_available else 'UNAVAILABLE' }}
+                </button>
+            </form>
+        {% else %}
+            <form method="post" action="/set_source">
+                <button class="btn source-btn {% if state.active_source == 'solar' %}active{% endif %}" 
+                        type="submit" name="source" value="solar">USE SOLAR</button>
+                <button class="btn source-btn {% if state.active_source == 'battery' %}active{% endif %}" 
+                        type="submit" name="source" value="battery">USE BATTERY</button>
+                <button class="btn source-btn {% if state.active_source == 'grid' %}active{% endif %}" 
+                        type="submit" name="source" value="grid">USE GRID</button>
+            </form>
+        {% endif %}
+    </div>
+
+    <!-- Building Output -->
+    <div class="card">
+        <h2>Building Load</h2>
+        <div class="status {% if state.output_enabled %}on{% else %}off{% endif %}">
+            Status: {{ 'POWERED' if state.output_enabled else 'OFF' }}
+        </div>
+        <form method="post" action="/toggle_output">
+            <button class="btn output-btn" type="submit">
+                {{ 'TURN OFF' if state.output_enabled else 'TURN ON' }}
+            </button>
+        </form>
+    </div>
+
+    <!-- System Status -->
+    <div class="card">
+        <h2>System Status</h2>
+        <p>Output LED: <span class="led-indicator {% if state.output_enabled %}on{% else %}off{% endif %}"></span>
+           {{ 'ON (Building Powered)' if state.output_enabled else 'OFF (No Power)' }}</p>
+    </div>
+</body>
+</html>
