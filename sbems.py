@@ -6,9 +6,9 @@ import time
 app = Flask(__name__)
 
 # GPIO Setup
-RELAY_GRID = 17
+RELAY_GRID = 27
 RELAY_BATTERY = 18
-RELAY_SOLAR = 27
+RELAY_SOLAR = 17
 RELAY_OUTPUT = 22
 
 # Initialize GPIO
